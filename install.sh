@@ -6,7 +6,7 @@ set -e
 
 # Variables personnalisables
 SSID="VTX-FLY"
-WIFI_INTERFACE="wlx0013ef500122" #need to be change with nic name
+WIFI_INTERFACE=""wlan0/wlan1/nic #need to be change with nic name
 ## downloads aircrack ng or wifi driver that you want ###
 
 echo "Installation des dépendances"
@@ -35,14 +35,14 @@ sudo make
 sudo make install
 
 WIFI_INTERFACE=$(ip -o link show | awk -F': ' '/wl/ {print $2; exit}')
-##START ON CHANNEL 36 5.8GHZ## ON AP channel are set auto on gs, with tx power of 20dbm so 100mw###
+##START ON CHANNEL 60 5.8GHZ## ON AP channel are set auto on gs, with tx power of 20dbm so 100mw###
 echo "Création du fichier de configuration hostapd"
-sudo bash -c "cat > /usr/local/etc/hostapd/hostapd.conf <<EOF
+sudo bash -c "cat > /etc/hostapd/hostapd.conf <<EOF
 interface=$WIFI_INTERFACE
 driver=nl80211
-ssid=$SSID
+ssid=AP-LINK
 hw_mode=a
-channel=36
+channel=60
 ieee80211n=0
 wmm_enabled=0
 auth_algs=1
@@ -57,11 +57,9 @@ sudo ip addr add 192.168.4.1/24 dev $WIFI_INTERFACE
 sudo ip link set $WIFI_INTERFACE up
 
 echo "Démarrage des services"
-sudo hostapd /usr/local/etc/hostapd/hostapd.conf &
+sudo hostapd /etc/hostapd/hostapd.conf &
 
-echo "Point d'accès Wi-Fi '$SSID' '$WIFI_INTERFACE' actif via hostapd compilé à partir des sources."
-
-echo 'lancement du stream'
+echo "Point d'accès Wi-Fi 'AP-LINK' '$WIFI_INTERFACE' actif via hostapd compilé à partir des sources. lancement du stream"
 
 sudo apt install ffmpeg
 
