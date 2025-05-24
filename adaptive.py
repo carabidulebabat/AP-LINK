@@ -1,4 +1,4 @@
-#alink logic
+#alink logic, draft code not working for the moment
 import cv2
 import subprocess
 import socket
