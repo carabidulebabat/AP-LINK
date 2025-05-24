@@ -37,7 +37,7 @@ sudo make install
 WIFI_INTERFACE=$(ip -o link show | awk -F': ' '/wl/ {print $2; exit}')
 ##START ON CHANNEL 36 5.8GHZ## ON AP channel are set auto on gs, with tx power of 20dbm so 100mw###
 echo "Création du fichier de configuration hostapd"
-sudo bash -c "cat > /usr/local/etc/hostapd.conf <<EOF
+sudo bash -c "cat > /usr/local/etc/hostapd/hostapd.conf <<EOF
 interface=$WIFI_INTERFACE
 driver=nl80211
 ssid=$SSID
@@ -52,18 +52,12 @@ max_num_sta=5
 ap_max_inactivity=120
 EOF"
 
-echo "[5/7] Attribution IP statique à $WIFI_INTERFACE"
+echo "Attribution IP statique à $WIFI_INTERFACE"
 sudo ip addr add 192.168.4.1/24 dev $WIFI_INTERFACE
 sudo ip link set $WIFI_INTERFACE up
 
-echo "[6/7] Activation du routage NAT"
-sudo bash -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
-sudo iptables -t nat -A POSTROUTING -o $INTERNET_INTERFACE -j MASQUERADE
-sudo iptables -A FORWARD -i $INTERNET_INTERFACE -o $WIFI_INTERFACE -m state --state RELATED,ESTABLISHED -j ACCEPT
-sudo iptables -A FORWARD -i $WIFI_INTERFACE -o $INTERNET_INTERFACE -j ACCEPT
-
-echo "[7/7] Démarrage des services"
-sudo /usr/local/bin/hostapd /usr/local/etc/hostapd.conf &
+echo "Démarrage des services"
+sudo hostapd /usr/local/etc/hostapd/hostapd.conf &
 
 echo "Point d'accès Wi-Fi '$SSID' '$WIFI_INTERFACE' actif via hostapd compilé à partir des sources."
 
