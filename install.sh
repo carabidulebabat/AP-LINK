@@ -62,7 +62,7 @@ echo "WIFI AP '$SSID' '$WIFI_INTERFACE' hostapd compile successfully, download o
 
 sudo apt install dnsmasq
 
-sudo bash -c "cat /etc/dnsmasq/dnsmasq.conf << EOF
+sudo bash -c 'cat > /etc/dnsmasq/dnsmasq.conf <<EOF
 domain-needed
 bogus-priv
 filterwin2k
@@ -70,7 +70,8 @@ server=1.1.1.1
 listen-address=192.168.0.1
 no-hosts
 dhcp-range=192.168.0.50,192.168.0.150,12h
-EOF"
+EOF'
+
 
 echo 'stream is launching, hostapd is working, end of code'
 
