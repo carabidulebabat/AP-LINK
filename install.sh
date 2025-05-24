@@ -55,6 +55,7 @@ ap_max_inactivity=120
 EOF"
 
 echo "SET IP FIX AT $WIFI_INTERFACE"
+sudo ip link set $WIFI_INTERFACE down
 sudo ip addr add 192.168.0.1/24 dev $WIFI_INTERFACE
 sudo ip link set $WIFI_INTERFACE up
 
