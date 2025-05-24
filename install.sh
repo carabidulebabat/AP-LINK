@@ -69,7 +69,7 @@ filterwin2k
 server=1.1.1.1
 listen-address=192.168.0.1
 no-hosts
-dhcp-range=192.168.0.50,192.168.0.150,12h
+dhcp-range=192.168.0.50,192.168.0.150,infinite
 EOF'
 
 
