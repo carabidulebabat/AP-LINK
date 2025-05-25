@@ -1,91 +1,47 @@
-#alink logic, draft code not working for the moment
-import cv2
+#alink logic
+
 import subprocess
-import socket
-import threading
 import time
-##ADAPTIVE EXEMPLE WORKS WITH FFMEG NEED TO ADAPT WITH YOUR STREAMER"""
+import re
+bitrate=60
+ip="192.168.1.0"
+interval=5
+bitratemax=60
 
-DEST_IP = "192.168.1.28"  # IP of groundstation
-DEST_PORT = 5000           # UDP port
-ACK_PORT = 4321           # Port local pour recevoir ACK (facultatif)
+import subprocess
 
-# Initial config
-resolutions = (1280, 720)  # progressive levels
-bitrates = ['2000k', '10000k', '20000k', '50000k']
-quality_level = 4
+def get_average_ping(ping_target="8.8.8.8"):
+    try:
+        cmd = ["ping", ping_target]
+        output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, universal_newlines=True)
 
-ack_received = True
-last_ack_time = time.time()
+        # Exemple de ligne à parser :
+        # rtt min/avg/max/mdev = 24.292/25.081/25.975/0.705 ms
+    except subprocess.CalledProcessError as e:
+        print("[PING ERROR] Échec du ping ou timeout.")
+        return None
 
-def ack_listener():
-    global ack_received, last_ack_time
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind(('', ACK_PORT))
-    while True:
-        try:
-            data, _ = sock.recvfrom(1024)
-            if data == b'ACK':
-                ack_received = True
-                last_ack_time = time.time()
-        except Exception:
-            pass
+    match = re.search(r"Maximum\s*=\s*(\d+)\s*ms", output)
+    if match:
+        max_rtt = int(match.group(1))
+        return max_rtt
+    else:
+        print("[ERROR] Aucune valeur Maximum trouvée.")
+        return None
 
-threading.Thread(target=ack_listener, daemon=True).start()
+# Exemple de test :
 
-def launch_ffmpeg(width, height, bitrate):
-    print(f"[FFMPEG] Resolution: {width}x{height}, Bitrate: {bitrate}")
-    return subprocess.Popen([
-        'ffmpeg',
-        '-f', 'rawvideo',
-        '-pix_fmt', 'bgr24',
-        '-s', f'{width}x{height}',
-        '-r', '25',
-        '-i', '-',
-        '-c:v', 'libx264',
-        '-preset', 'ultrafast',
-        '-tune', 'zerolatency',
-        '-b:v', bitrate,
-        '-f', 'mpegts',
-        f'udp://{DEST_IP}:{DEST_PORT}?pkt_size=1316'
-    ], stdin=subprocess.PIPE)
 
-cap = cv2.VideoCapture(0)
-cap.set(cv2.CAP_PROP_FPS, 60)
-
-current_ffmpeg = launch_ffmpeg(*resolutions[quality_level], bitrates[quality_level])
-last_adjust = time.time()
+####LOGIC FUNCTION ON TIMEOUT GS
 
 while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
-
-    try:
-        current_ffmpeg.stdin.write(frame_resized.tobytes())
-    except (BrokenPipeError, IOError):
-        print("FFmpeg pipe broken. Exiting.")
-        break
-
-    if time.time() - last_adjust > 0.5:
-        now = time.time()
-        timeout = now - last_ack_time
-
-        if timeout > 1.0 and quality_level > 0:
-            quality_level -= 1
-            print(f"[ADAPT] ↓ Network degraded. Switching to level {bitrates}")
-            current_ffmpeg.stdin.close()
-            current_ffmpeg.wait()
-            current_ffmpeg = launch_ffmpeg(bitrates[quality_level])
-        elif timeout < 0.5 and quality_level < len(resolutions) - 1:
-            quality_level += 1
-            print(f"[ADAPT] ↑ Network stable. Increasing to level {bitrates}")
-            current_ffmpeg.stdin.close()
-            current_ffmpeg.wait()
-            current_ffmpeg = launch_ffmpeg(bitrates[quality_level])
-
-        last_adjust = now
-
-cap.release()
-current_ffmpeg.stdin.close()
-current_ffmpeg.wait()
+    time.sleep(2)
+    if(get_average_ping(ip) > 100):
+        #set your encoder behavior here
+        bitrate=bitrate-interval
+        print(f'{bitrate} Mbps')
+    else:
+        #set your encoder behavior here
+        bitrate=bitrate+interval
+        print(f'{bitrate} Mbps')
+  
