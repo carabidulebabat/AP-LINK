@@ -39,28 +39,21 @@ sudo make
 
 ##START ON tx power of 20dbm so 100mw, ACS enable, will pick the best channel avaible###
 echo "copy of hostapd.conf to /etc/hostapd/hostapd.conf....."
-cd /etc/aplink
-sed -i "s/^interface=\$WIFI_INTERFACE/interface=$interface/" /etc/aplink/hostapd.conf
+cd /etc/vtx/aplink
+sed -i "s/^interface=\$WIFI_INTERFACE/interface=$interface/" /etc/vtx/aplink/hostapd.conf
 sudo cp hostapd.conf /etc/hostapd/hostapd.conf 
 echo "WIFI AP '$SSID' '$interface' hostapd compile successfully, download of dnsmasq."
-
-sudo apt update
-sudo apt install dnsmasq
-
-sudo cp dnsmasq.conf /etc/dnsmasq.d/
 
 echo "SET IP FIX AT $interface"
 sudo ip link set $interface down
 sudo ip addr add 192.168.0.1/24 dev $interface
 sudo ip link set $interface up
 
-sudo systemctl enable dnsmasq
+#sudo cp aplink.service /etc/systemd/system/
 
-sudo cp aplink.service /etc/systemd/system/
+#sudo systemctl enable aplink.service
 
-sudo systemctl enable aplink.service
-
-systemctl disable NetworkManager
+#systemctl disable NetworkManager
 
 echo"end of the program"
 
