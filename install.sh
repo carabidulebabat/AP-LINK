@@ -49,6 +49,8 @@ sudo ip link set $interface down
 sudo ip addr add 192.168.0.1/24 dev $interface
 sudo ip link set $interface up
 
+sudo nmcli dev set $interface managed no
+
 #sudo cp aplink.service /etc/systemd/system/
 
 #sudo systemctl enable aplink.service
